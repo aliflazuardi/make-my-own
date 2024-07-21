@@ -47,7 +47,7 @@ func (s *ServerPool) GetNextPeer() *Server {
 	for i := next; i < l; i++ {
 		idx := i % len(s.servers) // take an index by modding with length
 
-		if s.servers[idx].Alive {
+		if s.servers[idx].isAlive() {
 			if i != next { // original one
 
 				atomic.StoreUint64(&s.current, uint64(idx))
