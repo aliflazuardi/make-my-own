@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -19,6 +20,8 @@ type ServerPool struct {
 	servers []*Server
 	current uint64
 }
+
+var serverPool ServerPool
 
 // Avoid race conditions
 func (s *Server) SetAlive(alive bool) {
@@ -71,7 +74,9 @@ func lb(w http.ResponseWriter, r *http.Request) {
 func main() {
 	u, _ := url.Parse("http://localhost:8080")
 
-	rp := httputil.NewSingleHostReverseProxy(u)
+	proxy := httputil.NewSingleHostReverseProxy(u)
 
-	http.HandlerFunc(rp.ServeHTTP)
+	proxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
+		log.Printf("[%s] %s\n", "host", e.Error())
+	}
 }
