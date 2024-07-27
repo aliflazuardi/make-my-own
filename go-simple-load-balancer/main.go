@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -61,6 +62,9 @@ func (s *ServerPool) GetNextPeer() *Server {
 	return nil
 }
 
+func (s *ServerPool) MarkServerStatus(url string, status bool) {
+}
+
 func lb(w http.ResponseWriter, r *http.Request) {
 	peer := serverPool.GetNextPeer()
 
@@ -78,5 +82,10 @@ func main() {
 
 	proxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
 		log.Printf("[%s] %s\n", "host", e.Error())
+
+		serverPool.MarkServerStatus(serverUrl, false)
+
+		ctx := context.WithValue(request.Context(), Attempts, attemps+1)
+		lb(writer, request.WithContext(ctx))
 	}
 }
